@@ -17,6 +17,25 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   final Category _category = Category();
   final CategoryService _categoryService = CategoryService();
 
+  final List<Category> _categoryList = <Category>[];
+
+  @override
+  void initState() {
+    super.initState();
+    getAllCategories();
+  }
+
+  getAllCategories() async {
+    var categories = await _categoryService.getCategories();
+    categories.forEach((category) {
+      setState(() {
+        var model = Category();
+        model.name = category['name'];
+        _categoryList.add(model);
+      });
+    });
+  }
+
   _showFormDialog(BuildContext context) {
     return showDialog(
       context: context,
@@ -29,10 +48,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 _category.name = _catNameController.text;
                 _category.description = _catDescriptionController.text;
-                _categoryService.saveCategory(_category);
+                var result = await _categoryService.saveCategory(_category);
+                debugPrint(result);
               },
               child: const Text('Save'),
             ),
@@ -80,12 +100,28 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           },
         ),
       ),
-      body: const Center(
-        child: Text(
-          'Categories screen',
-          style: TextStyle(fontSize: 24.0),
-        ),
-      ),
+      body: ListView.builder(
+          itemCount: _categoryList.length,
+          itemBuilder: (BuildContext context, int index) {
+            return Card(
+              child: ListTile(
+                leading: IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {},
+                ),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(_categoryList[index].name.toString()),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.delete),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showFormDialog(context);
