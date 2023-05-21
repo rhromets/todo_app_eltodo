@@ -17,7 +17,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   final Category _category = Category();
   final CategoryService _categoryService = CategoryService();
 
-  final List<Category> _categoryList = <Category>[];
+  List<Category> _categoryList = <Category>[];
+
+  final TextEditingController _editCatName = TextEditingController();
+  final TextEditingController _editCatDescription = TextEditingController();
+
+  // ignore: prefer_typing_uninitialized_variables
+  var category;
 
   @override
   void initState() {
@@ -26,11 +32,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   getAllCategories() async {
+    _categoryList = <Category>[];
     var categories = await _categoryService.getCategories();
     categories.forEach((category) {
       setState(() {
         var model = Category();
         model.name = category['name'];
+        model.id = category['id'];
+        model.description = category['description'];
         _categoryList.add(model);
       });
     });
@@ -44,15 +53,16 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         return AlertDialog(
           actions: [
             TextButton(
-              onPressed: () => debugPrint('Cancel'),
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
+                Navigator.pop(context);
                 _category.name = _catNameController.text;
                 _category.description = _catDescriptionController.text;
-                var result = await _categoryService.saveCategory(_category);
-                debugPrint(result);
+                await _categoryService.saveCategory(_category);
+                getAllCategories();
               },
               child: const Text('Save'),
             ),
@@ -83,6 +93,111 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
+  _editCategoryDialog(BuildContext context) {
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) {
+        return AlertDialog(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                _category.id = category[0]['id'];
+                _category.name = _editCatName.text;
+                _category.description = _editCatDescription.text;
+                await _categoryService.updateCategory(_category);
+                getAllCategories();
+                _showSnackBar(const Text('Success'));
+              },
+              child: const Text('Edit'),
+            ),
+          ],
+          title: const Text('Category edit form'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: _editCatName,
+                  decoration: const InputDecoration(
+                    labelText: 'Category name',
+                    hintText: 'Write category name',
+                  ),
+                ),
+                TextField(
+                  controller: _editCatDescription,
+                  decoration: const InputDecoration(
+                    labelText: 'Category description',
+                    hintText: 'Write category description',
+                  ),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  _deleteCategoryDialog(BuildContext context, categoryId) {
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) {
+        return AlertDialog(
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: const ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(Colors.green),
+              ),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _categoryService.deleteCategory(categoryId);
+                getAllCategories();
+                _showSnackBar(const Text('Success'));
+              },
+              style: const ButtonStyle(
+                backgroundColor: MaterialStatePropertyAll(Colors.red),
+              ),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+          title: const Text('Are you sure, you want to delete?'),
+        );
+      },
+    );
+  }
+
+  _editCategory(BuildContext context, int categoryId) async {
+    _editCategoryDialog(context);
+    category = await _categoryService.getCategoryById(categoryId);
+    setState(() {
+      _editCatName.text = category[0]['name'] ?? 'No name';
+      _editCatDescription.text = category[0]['description'] ?? 'No description';
+    });
+  }
+
+  _showSnackBar(message) {
+    var snackBar = SnackBar(
+      content: message,
+    );
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,14 +222,18 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: ListTile(
                 leading: IconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () {},
+                  onPressed: () {
+                    _editCategory(context, _categoryList[index].id!);
+                  },
                 ),
                 title: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(_categoryList[index].name.toString()),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        _deleteCategoryDialog(context, _categoryList[index].id);
+                      },
                       icon: const Icon(Icons.delete),
                     ),
                   ],
