@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo_app_eltodo/models/models.dart';
 import 'package:todo_app_eltodo/services/services.dart';
 import 'package:intl/intl.dart';
 
@@ -15,6 +16,11 @@ class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _todoDate = TextEditingController();
 
   final List<DropdownMenuItem> _categories = <DropdownMenuItem>[];
+
+  final TodoService todoService = TodoService();
+
+  // ignore: prefer_typing_uninitialized_variables
+  var _selectedValue;
 
   @override
   void initState() {
@@ -70,23 +76,23 @@ class _TodoScreenState extends State<TodoScreen> {
               controller: _todoTitle,
               decoration: const InputDecoration(
                 hintText: 'Todo title',
-                labelText: 'Cook food',
+                labelText: 'Title',
               ),
             ),
             TextField(
               controller: _todoDescription,
               decoration: const InputDecoration(
                 hintText: 'Todo description',
-                labelText: 'Cook rice and carry',
+                labelText: 'Description',
               ),
             ),
             TextField(
               controller: _todoDate,
               decoration: InputDecoration(
-                hintText: 'YY-MM-DD',
-                labelText: 'YY-MM-DD',
+                hintText: 'YYYY-MM-DD',
+                labelText: 'YYYY-MM-DD',
                 prefixIcon: InkWell(
-                  onTap: (){
+                  onTap: () {
                     _selectTodoDate(context);
                   },
                   child: const Icon(Icons.calendar_today),
@@ -94,13 +100,26 @@ class _TodoScreenState extends State<TodoScreen> {
               ),
             ),
             DropdownButtonFormField(
+              value: _selectedValue,
               items: _categories,
               hint: const Text('Select one category'),
-              onChanged: (value) {},
+              onChanged: (value) {
+                _selectedValue = value;
+              },
             ),
             const SizedBox(height: 20.0),
             ElevatedButton(
-              onPressed: () {},
+              onPressed: () async {
+                Todo todoObj = Todo();
+                todoObj.title = _todoTitle.text;
+                todoObj.description = _todoDescription.text;
+                todoObj.todoDate = _todoDate.text;
+                todoObj.category = _selectedValue.toString();
+                todoObj.isFinished = 0;
+                TodoService todoService = TodoService();
+                Navigator.pop(context);
+                await todoService.insertTodo(todoObj);
+              },
               child: const Text('Save'),
             ),
           ],
