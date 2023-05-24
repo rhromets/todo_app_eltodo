@@ -17,13 +17,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   final Category _category = Category();
   final CategoryService _categoryService = CategoryService();
 
-  List<Category> _categoryList = <Category>[];
+  List<Category> _categoryList = [];
 
   final TextEditingController _editCatName = TextEditingController();
   final TextEditingController _editCatDescription = TextEditingController();
 
   // ignore: prefer_typing_uninitialized_variables
   var category;
+
+  bool _isEmptyScreen = true;
 
   @override
   void initState() {
@@ -33,7 +35,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   getAllCategories() async {
     _categoryList = <Category>[];
-    var categories = await _categoryService.getCategories();
+    List categories = await _categoryService.getCategories();
+    _checkCategoriesList(categories);
     categories.forEach((category) {
       setState(() {
         var model = Category();
@@ -43,6 +46,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
         _categoryList.add(model);
       });
     });
+  }
+
+  _checkCategoriesList(categories) {
+    categories.length == 0 ? _isEmptyScreen = true : _isEmptyScreen = false;
   }
 
   _showFormDialog(BuildContext context) {
@@ -106,7 +113,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CategoriesScreen(),
+                  ),
+                );
                 _category.id = category[0]['id'];
                 _category.name = _editCatName.text;
                 _category.description = _editCatDescription.text;
@@ -162,7 +174,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CategoriesScreen(),
+                  ),
+                );
                 await _categoryService.deleteCategory(categoryId);
                 getAllCategories();
                 _showSnackBar(const Text('Success'));
@@ -202,7 +219,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('El Todo'),
+        title: const Text('Create Category'),
         elevation: 0.0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -215,32 +232,43 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           },
         ),
       ),
-      body: ListView.builder(
-          itemCount: _categoryList.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Card(
-              child: ListTile(
-                leading: IconButton(
-                  icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    _editCategory(context, _categoryList[index].id!);
-                  },
-                ),
-                title: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(_categoryList[index].name.toString()),
-                    IconButton(
-                      onPressed: () {
-                        _deleteCategoryDialog(context, _categoryList[index].id);
-                      },
-                      icon: const Icon(Icons.delete),
-                    ),
-                  ],
+      body: _isEmptyScreen
+          ? const Center(
+              child: Text(
+                'Please create a category',
+                style: TextStyle(
+                  fontSize: 20.0,
+                  color: Colors.black45,
                 ),
               ),
-            );
-          }),
+            )
+          : ListView.builder(
+              itemCount: _categoryList.length,
+              itemBuilder: (BuildContext context, int index) {
+                return Card(
+                  child: ListTile(
+                    leading: IconButton(
+                      icon: const Icon(Icons.edit),
+                      onPressed: () {
+                        _editCategory(context, _categoryList[index].id!);
+                      },
+                    ),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(_categoryList[index].name ?? 'Category name'),
+                        IconButton(
+                          onPressed: () {
+                            _deleteCategoryDialog(
+                                context, _categoryList[index].id);
+                          },
+                          icon: const Icon(Icons.delete),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _showFormDialog(context);

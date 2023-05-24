@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app_eltodo/models/models.dart';
+import 'package:todo_app_eltodo/screens/screens.dart';
 import 'package:todo_app_eltodo/services/services.dart';
 import 'package:intl/intl.dart';
 
@@ -108,7 +109,7 @@ class _TodoScreenState extends State<TodoScreen> {
               },
             ),
             const SizedBox(height: 20.0),
-            ElevatedButton(
+            TextButton(
               onPressed: () async {
                 Todo todoObj = Todo();
                 todoObj.title = _todoTitle.text;
@@ -117,10 +118,22 @@ class _TodoScreenState extends State<TodoScreen> {
                 todoObj.category = _selectedValue.toString();
                 todoObj.isFinished = 0;
                 TodoService todoService = TodoService();
-                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                );
                 await todoService.insertTodo(todoObj);
               },
-              child: const Text('Save'),
+              child: const Text(
+                'Save',
+                style: TextStyle(
+                  fontSize: 24.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
             ),
           ],
         ),

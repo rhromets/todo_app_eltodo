@@ -14,6 +14,9 @@ class App extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Todo app Eltodo',
       theme: ThemeData(
+        drawerTheme: const DrawerThemeData(
+          scrimColor: Colors.black87,
+        ),
         colorSchemeSeed: Colors.red,
         appBarTheme: const AppBarTheme(
           color: Colors.red,
