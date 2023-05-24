@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo_app_eltodo/screens/screens.dart';
+import 'package:todo_app_eltodo/services/services.dart';
 
 class DrawerNavigation extends StatefulWidget {
   const DrawerNavigation({Key? key}) : super(key: key);
@@ -9,6 +10,38 @@ class DrawerNavigation extends StatefulWidget {
 }
 
 class _DrawerNavigationState extends State<DrawerNavigation> {
+  final List<Widget> _categoryList = [];
+  final CategoryService _categoryService = CategoryService();
+
+  @override
+  void initState() {
+    super.initState();
+    getAllCategories();
+  }
+
+  getAllCategories() async {
+    var categories = await _categoryService.getCategories();
+    categories.forEach((category) {
+      setState(() {
+        _categoryList.add(
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        TodosByCategory(category: category['name']),
+                  ));
+            },
+            child: ListTile(
+              title: Text(category['name']),
+            ),
+          ),
+        );
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -51,6 +84,10 @@ class _DrawerNavigationState extends State<DrawerNavigation> {
                 ),
               );
             },
+          ),
+          const Divider(),
+          Column(
+            children: _categoryList,
           ),
         ],
       ),
