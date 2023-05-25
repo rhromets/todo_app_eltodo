@@ -16,12 +16,16 @@ class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _todoDescription = TextEditingController();
   final TextEditingController _todoDate = TextEditingController();
 
-  final List<DropdownMenuItem> _categories = <DropdownMenuItem>[];
+  final List<DropdownMenuItem> _categories = [];
 
   final TodoService todoService = TodoService();
 
+  DateTime _date = DateTime.now();
+
   // ignore: prefer_typing_uninitialized_variables
   var _selectedValue;
+
+  bool isShowSaveBtn = true;
 
   @override
   void initState() {
@@ -32,6 +36,15 @@ class _TodoScreenState extends State<TodoScreen> {
   _loadCategories() async {
     var categoryService = CategoryService();
     var categories = await categoryService.getCategories();
+    if (categories.isEmpty) {
+      setState(() {
+        isShowSaveBtn = false;
+      });
+    } else {
+      setState(() {
+        isShowSaveBtn = true;
+      });
+    }
     categories.forEach((category) {
       setState(() {
         _categories.add(
@@ -45,8 +58,6 @@ class _TodoScreenState extends State<TodoScreen> {
       });
     });
   }
-
-  DateTime _date = DateTime.now();
 
   _selectTodoDate(BuildContext context) async {
     var pickedDate = await showDatePicker(
@@ -109,32 +120,51 @@ class _TodoScreenState extends State<TodoScreen> {
               },
             ),
             const SizedBox(height: 20.0),
-            TextButton(
-              onPressed: () async {
-                Todo todoObj = Todo();
-                todoObj.title = _todoTitle.text;
-                todoObj.description = _todoDescription.text;
-                todoObj.todoDate = _todoDate.text;
-                todoObj.category = _selectedValue.toString();
-                todoObj.isFinished = 0;
-                TodoService todoService = TodoService();
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
+            isShowSaveBtn
+                ? TextButton(
+                    onPressed: () async {
+                      Todo todoObj = Todo();
+                      todoObj.title = _todoTitle.text;
+                      todoObj.description = _todoDescription.text;
+                      todoObj.todoDate = _todoDate.text;
+                      todoObj.category = _selectedValue.toString();
+                      todoObj.isFinished = 0;
+                      TodoService todoService = TodoService();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HomeScreen(),
+                        ),
+                      );
+                      await todoService.insertTodo(todoObj);
+                    },
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(
+                        fontSize: 22.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
+                  )
+                : TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const CategoriesScreen(),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      'Go to Categories',
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
                   ),
-                );
-                await todoService.insertTodo(todoObj);
-              },
-              child: const Text(
-                'Save',
-                style: TextStyle(
-                  fontSize: 24.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.red,
-                ),
-              ),
-            ),
           ],
         ),
       ),

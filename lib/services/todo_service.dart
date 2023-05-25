@@ -19,4 +19,8 @@ class TodoService {
   todosByCategory(String category) async {
     return await _repository.getByColumnName('Todos', 'Category', category);
   }
+
+  deleteTodo(todoId) async {
+    return await _repository.delete('Todos', todoId);
+  }
 }

@@ -52,6 +52,11 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     categories.length == 0 ? _isEmptyScreen = true : _isEmptyScreen = false;
   }
 
+  clearTextFields() {
+    _catNameController.text = '';
+    _catDescriptionController.text = '';
+  }
+
   _showFormDialog(BuildContext context) {
     return showDialog(
       context: context,
@@ -69,6 +74,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 _category.name = _catNameController.text;
                 _category.description = _catDescriptionController.text;
                 await _categoryService.saveCategory(_category);
+                clearTextFields();
                 getAllCategories();
               },
               child: const Text('Save'),

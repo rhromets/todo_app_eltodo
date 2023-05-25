@@ -15,14 +15,9 @@ class _HomeScreenState extends State<HomeScreen> {
   late TodoService _todoService;
   late List<Todo> _todoList;
 
-  final CategoryService _categoryService = CategoryService();
-
-  bool _isShowTodos = true;
-
   @override
   initState() {
     getAllTodos();
-    _isEmptyScreen();
     super.initState();
   }
 
@@ -44,11 +39,6 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  _isEmptyScreen() async {
-    List categories = await _categoryService.getCategories();
-    categories.isEmpty ? _isShowTodos = false : _isShowTodos = true;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -56,34 +46,32 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('El Todo'),
       ),
       drawer: const DrawerNavigation(),
-      body: _isShowTodos
-          ? ListView.builder(
-              itemCount: _todoList.length,
-              itemBuilder: (context, int index) {
-                return Card(
-                  child: ListTile(
-                    title: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(_todoList[index].title ?? 'No title'),
-                        const Icon(Icons.close),
-                      ],
-                    ),
+      body: ListView.builder(
+        itemCount: _todoList.length,
+        itemBuilder: (context, int index) {
+          return Card(
+            child: ListTile(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(_todoList[index].title ?? 'No title'),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () async {
+                      await _todoService.deleteTodo(_todoList[index].id);
+                      setState(() {
+                        getAllTodos();
+                      });
+                    },
                   ),
-                );
-              },
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.only(bottom: 100.0),
-            )
-          : const Center(
-              child: Text(
-                'List is Empty, please create category',
-                style: TextStyle(
-                  fontSize: 20.0,
-                  color: Colors.black45,
-                ),
+                ],
               ),
             ),
+          );
+        },
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.only(bottom: 100.0),
+      ),
       bottomSheet: Container(
         height: 100.0,
         width: MediaQuery.of(context).size.width,
@@ -98,65 +86,35 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         child: Center(
-          child: _isShowTodos
-              ? TextButton(
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.add,
-                        color: Colors.white,
-                      ),
-                      SizedBox(width: 15.0),
-                      Text(
-                        'CREATE TODO',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22.0,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                    ],
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TodoScreen(),
-                      ),
-                    );
-                  },
-                )
-              : TextButton(
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'GO TO CATEGORIES',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22.0,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 2.0,
-                        ),
-                      ),
-                      SizedBox(width: 15.0),
-                      Icon(
-                        Icons.arrow_forward,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const CategoriesScreen(),
-                      ),
-                    );
-                  },
+          child: TextButton(
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.add,
+                  color: Colors.white,
                 ),
+                SizedBox(width: 15.0),
+                Text(
+                  'CREATE TODO',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22.0,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+              ],
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TodoScreen(),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
