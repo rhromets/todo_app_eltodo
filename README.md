@@ -1,6 +1,7 @@
 # todo_app_eltodo
 
-A new Flutter project.
+A new Flutter project. 
+Todo app using Flutter and Sqflite. This app is educational.
 
 ## Getting Started
 
